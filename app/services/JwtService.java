@@ -31,13 +31,4 @@ public class JwtService {
             return false;
         }
     }
-
-    public String getUsernameFromToken(String token) {
-        try {
-            DecodedJWT decodedJWT = JWT.decode(token);
-            return decodedJWT.getSubject();
-        } catch (JWTDecodeException exception) {
-            return null;
-        }
-    }
 }
