@@ -1,5 +1,6 @@
 package models;
 
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import java.util.Date;
@@ -7,7 +8,7 @@ import java.util.Date;
 @Entity("tasks")
 public class Task {
     @Id
-    private String id;
+    private ObjectId id;
     private String name;
     private String description;
     private Date createdDate;
