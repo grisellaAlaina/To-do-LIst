@@ -1,7 +1,9 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import services.TaskService;
 import models.Task;
@@ -49,11 +51,26 @@ public class TaskController extends Controller {
         return ok("Task deleted successfully");
     }
 
+    public Result updateTask(String id, Http.Request request) {
+        JsonNode json = request.body().asJson();
+        String newName = json.findPath("name").textValue();
+        String newDescription = json.findPath("description").textValue();
 
+        Task existingTask = taskService.getTaskById(id);
+        if (existingTask == null) {
+            return notFound("Task not found");
+        }
 
+        existingTask.setName(newName);
+        existingTask.setDescription(newDescription);
 
+        taskService.updateTask(existingTask);
 
-
-
-
+        return ok(Json.toJson(existingTask));
+    }
 }
+
+
+
+
+
