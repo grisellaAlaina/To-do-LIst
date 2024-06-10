@@ -36,4 +36,12 @@ public class Task {
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
     }
+
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
 }

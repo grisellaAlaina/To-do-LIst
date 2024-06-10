@@ -13,7 +13,11 @@ lazy val root = (project in file("."))
     )
   )
 
-
+libraryDependencies ++= Seq(
+  "org.mockito" % "mockito-core" % "5.11.0" % Test,
+  "org.mockito" % "mockito-inline" % "5.2.0" % Test,
+  "junit" % "junit" % "4.13.2" % Test
+)
 
 libraryDependencies += "org.mongodb" % "mongo-java-driver" % "3.12.14"
 libraryDependencies += "org.mongodb.morphia" % "morphia" % "1.3.2"

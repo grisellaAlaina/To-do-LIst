@@ -10,17 +10,15 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 +nocsrf
 POST    /tasks/create        controllers.TaskController.createTask(request: play.mvc.Http.Request)
-
++nocsrf
 GET    /tasks/all            controllers.TaskController.getAllTasks(request: play.mvc.Http.Request)
-
++nocsrf
 GET     /tasks/:id           controllers.TaskController.getTaskById(id: String, request: play.mvc.Http.Request)
-
 +nocsrf
 DELETE /tasks/:id        controllers.TaskController.deleteTask(id: String, request: play.mvc.Http.Request)
-
 +nocsrf
 POST   /tasks/:id/update    controllers.TaskController.updateTask(id: String, request: play.mvc.Http.Request)
-
++nocsrf
 POST    /login                controllers.AuthenticationController.login(request: play.mvc.Http.Request)
-
++nocsrf
 GET     /verifyToken     controllers.AuthenticationController.verifyToken(request: play.mvc.Http.Request)
