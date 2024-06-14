@@ -17,8 +17,11 @@ GET     /tasks/:id           controllers.TaskController.getTaskById(id: String, 
 +nocsrf
 DELETE /tasks/:id        controllers.TaskController.deleteTask(id: String, request: play.mvc.Http.Request)
 +nocsrf
-POST   /tasks/:id/update    controllers.TaskController.updateTask(id: String, request: play.mvc.Http.Request)
+POST   /tasks/update    controllers.TaskController.updateTask(request: play.mvc.Http.Request)
 +nocsrf
 POST    /login                controllers.AuthenticationController.login(request: play.mvc.Http.Request)
 +nocsrf
 GET     /verifyToken     controllers.AuthenticationController.verifyToken(request: play.mvc.Http.Request)
++nocsrf
+GET   /tasks/:id/export    controllers.TaskController.exportTaskAsZip(id: String, request: play.mvc.Http.Request)
+

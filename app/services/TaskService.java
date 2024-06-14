@@ -1,14 +1,28 @@
 package services;
 
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.gridfs.GridFSInputFile;
 import models.Task;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import com.mongodb.MongoClient;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class TaskService {
-    private Datastore datastore;
+    private final Datastore datastore;
 
     public TaskService() {
         Morphia morphia = new Morphia();
@@ -36,5 +50,77 @@ public class TaskService {
 
     public void deleteTask(String taskId) {
         datastore.delete(Task.class, new org.bson.types.ObjectId(taskId));
+    }
+
+    public String saveImageToMongo(byte[] imageBytes, String filename) {
+        GridFS gridFS = new GridFS(this.datastore.getDB());
+        GridFSInputFile gfsFile = gridFS.createFile(imageBytes);
+        gfsFile.setFilename(filename);
+        gfsFile.setContentType("image/jpg");
+        gfsFile.save();
+        return gfsFile.getId().toString();
+    }
+
+    public List<String> convertPDFToImages(File pdfFile) {
+        List<String> imageIds = new ArrayList<>();
+
+        try (final PDDocument document = Loader.loadPDF(pdfFile)) {
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+            for (int page = 0; page < document.getNumberOfPages(); ++page) {
+                try {
+                    BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(bim, "jpg", baos);
+                    byte[] imageInByte = baos.toByteArray();
+
+                    String imageId = saveImageToMongo(imageInByte, "page_" + page + ".jpg");
+                    imageIds.add(imageId);
+
+                } catch (IOException e) {
+                    System.err.println("Error rendering image or writing to byte array: " + e.getMessage());
+                }
+            }
+
+            return imageIds;
+
+        } catch (IOException e) {
+            System.err.println("Error loading PDF document: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public byte[] getImageByImageId(String imageId) {
+        try {
+            GridFS gridFS = new GridFS(this.datastore.getDB());
+            GridFSDBFile imageFile = gridFS.find(new ObjectId(imageId));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            imageFile.writeTo(outputStream);
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            System.err.println("Error loading image: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Task createTaskWithPDF(String name, String description, File pdfFile) {
+        Task task = new Task();
+        task.setName(name);
+        task.setDescription(description);
+        task.setCreatedDate(new Date());
+
+        if (pdfFile != null) {
+            List<String> imageIds = this.convertPDFToImages(pdfFile);
+            task.setImageIds(imageIds);
+        }
+
+        this.createTask(task);
+        return task;
+    }
+
+    public String getValueFromFormData(Map<String, String[]> formData, String key) {
+        String[] valueArr = formData.get(key);
+        return (valueArr != null && valueArr.length > 0) ? valueArr[0] : null;
     }
 }
