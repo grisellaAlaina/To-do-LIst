@@ -20,6 +20,7 @@ Endpoints except, **/login**, **/verifyToken** can only be accessed with a JWT t
 | /tasks/{taskId}/export          | GET    | Export Task as Zip             |
 
 
+
 # How To Run
 
 **Step 1**
