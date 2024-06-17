@@ -4,11 +4,13 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -18,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import models.Task;
@@ -108,22 +111,23 @@ public class TaskServiceTest {
         verify(gridFSInputFile).save();
     }
 
-//    @Test
-//    public void testGetImageByImageId_Success() throws IOException {
-//        String imageId = "mock-image-id";
-//        byte[] mockImageData = "test-image".getBytes();
-//
-//        ObjectId mockObjectId = new ObjectId(imageId);
-//
-//        GridFSDBFile mockGridFSDBFile = mock(GridFSDBFile.class);
-//        when(gridFS.find(mockObjectId)).thenReturn(mockGridFSDBFile);
-//        when(mockGridFSDBFile.getInputStream()).thenReturn(new ByteArrayInputStream(mockImageData));
-//
-//        byte[] result = taskService.getImageByImageId(imageId);
-//
-//        assertNotNull(result);
-//        assertArrayEquals(mockImageData, result);
-//    }
+    @Test
+    public void testGetImageByImageId_Success() throws IOException {
+        String imageId = "507f191e810c19729de860ea";
+        GridFSDBFile imageFile = Mockito.mock(GridFSDBFile.class);
+        Mockito.when(gridFS.find(new ObjectId(imageId))).thenReturn(imageFile);
+
+        Mockito.doAnswer(invocation -> {
+            ByteArrayOutputStream outputStream = invocation.getArgument(0);
+            return 0;
+        }).when(imageFile).writeTo(any(ByteArrayOutputStream.class));
+
+        taskService.getImageByImageId(imageId);
+
+        Mockito.verify(gridFS).find(new ObjectId(imageId));
+    }
+
+
 
     @Test
     public void testGetImageByImageId_GridFSError() throws IOException {

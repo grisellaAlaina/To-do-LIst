@@ -1,6 +1,7 @@
 package services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -104,7 +105,6 @@ public class TaskService {
 
     public byte[] getImageByImageId(String imageId) {
         try {
-            GridFS gridFS = new GridFS(this.datastore.getDB());
             GridFSDBFile imageFile = gridFS.find(new ObjectId(imageId));
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             imageFile.writeTo(outputStream);
