@@ -1,6 +1,6 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.TaskDTO;
 import play.libs.Files;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -12,11 +12,9 @@ import models.Task;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class TaskController extends Controller {
 
@@ -52,7 +50,7 @@ public class TaskController extends Controller {
 
             Task task = taskService.createTaskWithPDF(name, description, pdfFile);
 
-            return ok(Json.toJson(task));
+            return ok(Json.toJson(convertToTaskDTO(task)));
         } catch (Exception e) {
             return internalServerError("Failed to create task: " + e.getMessage());
         }
@@ -100,7 +98,7 @@ public class TaskController extends Controller {
 
             taskService.updateTask(existingTask);
 
-            return ok(Json.toJson(existingTask));
+            return ok(Json.toJson(convertToTaskDTO(existingTask)));
         } catch (Exception e) {
             return internalServerError("Failed to update task: " + e.getMessage());
         }
@@ -113,7 +111,11 @@ public class TaskController extends Controller {
             }
 
             List<Task> tasks = taskService.getAllTasks();
-            return ok(Json.toJson(tasks));
+            List<TaskDTO> taskDTOs = new ArrayList<>();
+            for (Task task : tasks) {
+                taskDTOs.add(convertToTaskDTO(task));
+            }
+            return ok(Json.toJson(taskDTOs));
         } catch (Exception e) {
             return internalServerError("Failed to fetch tasks: " + e.getMessage());
         }
@@ -127,7 +129,7 @@ public class TaskController extends Controller {
 
             Task task = taskService.getTaskById(id);
             if (task != null) {
-                return ok(Json.toJson(task));
+                return ok(Json.toJson(convertToTaskDTO(task)));
             } else {
                 return notFound();
             }
@@ -157,32 +159,15 @@ public class TaskController extends Controller {
 
             Task task = taskService.getTaskById(id);
             if (task == null) {
-                return notFound("Task not found");
+                return notFound("Task not found with ID: " + id);
             }
 
-            File zipFile = File.createTempFile(task.getName(), ".zip");
-            try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
-                ZipEntry taskEntry = new ZipEntry("task.json");
-                zos.putNextEntry(taskEntry);
-                ObjectMapper objectMapper = new ObjectMapper();
-                String taskJson = objectMapper.writeValueAsString(task);
-                zos.write(taskJson.getBytes());
-                zos.closeEntry();
+            String destinationPath = File.createTempFile(task.getName(), ".zip").getPath();
 
-                for (String imageId : task.getImageIds()) {
-                    byte[] imageBytes = taskService.getImageByImageId(imageId);
-                    if (imageBytes != null) {
-                        ZipEntry imageEntry = new ZipEntry("images/" + imageId + ".jpg");
-                        zos.putNextEntry(imageEntry);
-                        zos.write(imageBytes);
-                        zos.closeEntry();
-                    }
-                }
-            }
+            File zipFile = taskService.createTaskAsZipFile(task, destinationPath);
 
-            return ok().sendFile(zipFile, false)
-                    .withHeader("Content-Disposition",
-                            "attachment; filename=" + zipFile.getName());
+            return ok().sendFile(zipFile, false, String.valueOf(true))
+                    .withHeader("Content-Disposition", "attachment; filename=" + zipFile.getName());
         } catch (Exception e) {
             return internalServerError("Failed to export task: " + e.getMessage());
         }
@@ -191,5 +176,15 @@ public class TaskController extends Controller {
     private boolean checkToken (Http.Request request) {
         String token = request.headers().get("Authorization").orElse(null);
         return  (token == null || !jwtService.verifyToken(token));
+    }
+
+    private TaskDTO convertToTaskDTO (Task taskToConvert) {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setId(taskToConvert.getId().toString());
+        taskDTO.setName(taskToConvert.getName());
+        taskDTO.setDescription(taskToConvert.getDescription());
+        taskDTO.setCreatedDate(taskToConvert.getCreatedDate());
+        taskDTO.setImageIds(taskToConvert.getImageIds());
+        return taskDTO;
     }
 }

@@ -1,5 +1,6 @@
 package services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -16,13 +17,17 @@ import com.mongodb.MongoClient;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class TaskService {
     private final Datastore datastore;
+    private final GridFS gridFS;
 
     public TaskService() {
         Morphia morphia = new Morphia();
@@ -30,7 +35,14 @@ public class TaskService {
         MongoClient mongoClient = new MongoClient("localhost", 27017);
         datastore = morphia.createDatastore(mongoClient, "tasks_db");
         datastore.ensureIndexes();
+        gridFS = new GridFS(this.datastore.getDB());
     }
+
+    public TaskService(Datastore datastore, GridFS gridFS) {
+        this.datastore = datastore;
+        this.gridFS = gridFS;
+    }
+
 
     public void createTask(Task task) {
         datastore.save(task);
@@ -53,7 +65,6 @@ public class TaskService {
     }
 
     public String saveImageToMongo(byte[] imageBytes, String filename) {
-        GridFS gridFS = new GridFS(this.datastore.getDB());
         GridFSInputFile gfsFile = gridFS.createFile(imageBytes);
         gfsFile.setFilename(filename);
         gfsFile.setContentType("image/jpg");
@@ -122,5 +133,33 @@ public class TaskService {
     public String getValueFromFormData(Map<String, String[]> formData, String key) {
         String[] valueArr = formData.get(key);
         return (valueArr != null && valueArr.length > 0) ? valueArr[0] : null;
+    }
+
+    public File createTaskAsZipFile(Task task, String destinationPath) {
+        try {
+            File zipFile = new File(destinationPath);
+            try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
+                ZipEntry taskEntry = new ZipEntry("task.json");
+                zos.putNextEntry(taskEntry);
+                ObjectMapper objectMapper = new ObjectMapper();
+                String taskJson = objectMapper.writeValueAsString(task);
+                zos.write(taskJson.getBytes(StandardCharsets.UTF_8));
+                zos.closeEntry();
+
+                for (String imageId : task.getImageIds()) {
+                    byte[] imageBytes = getImageByImageId(imageId);
+                    if (imageBytes != null) {
+                        String imageFileName = "images/" + imageId + ".jpg";
+                        ZipEntry imageEntry = new ZipEntry(imageFileName);
+                        zos.putNextEntry(imageEntry);
+                        zos.write(imageBytes);
+                        zos.closeEntry();
+                    }
+                }
+            }
+            return zipFile;
+        } catch (IOException e) {
+            throw new RuntimeException("An issue occurred while creating the zip file.", e);
+        }
     }
 }
