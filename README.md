@@ -8,18 +8,16 @@ Endpoints except, **/login**, **/verifyToken** can only be accessed with a JWT t
 
 
 
-| Endpoint                        |   | Functionality |   |   |
-|---------------------------------|---|---------------|---|---|
-| **POST** /login                 |   | Signup        |   |   |
-| **POST** /tasks/create          |   | Create task   |   |   |
-| **GET** /tasks/all              |   | Get all tasks |   |   |
-| **GET**/tasks/{taskId}          |   | Get a task    |   |   |
-| **DELETE**/tasks/{taskId}       |   | Delete task   |   |   |
-| **POST**/tasks/{taskId} /update |   | Update task   |   |   |
-| **POST**/login                  |   | Get JWT Token |   |   |
-| **GET**/verifyToken             |   | Verify Token  |   |   |
-
-
+| Endpoint                        | Method | Functionality                  |
+|---------------------------------|--------|--------------------------------|
+| /login                          | POST   | User Login/Get JWT Token       |
+| /tasks/create                   | POST   | Create Task                    |
+| /tasks/all                      | GET    | Get All Tasks                  |
+| /tasks/{taskId}                 | GET    | Get Task By ID                 |
+| /tasks/{taskId}                 | DELETE | Delete Task                    |
+| /tasks/update                   | POST   | Update Task                    |
+| /verifyToken                    | GET    | Verify JWT Token               |
+| /tasks/{taskId}/export          | GET    | Export Task as Zip             |
 
 
 # How To Run
