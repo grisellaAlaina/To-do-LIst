@@ -1,8 +1,9 @@
 package controllers;
 
 import dto.TaskDTO;
+import dto.TaskRequestDTO;
+import mappers.TaskMapper;
 import org.apache.log4j.Logger;
-import play.libs.Files;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -15,7 +16,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 public class TaskController extends Controller {
@@ -23,11 +23,13 @@ public class TaskController extends Controller {
     private static final Logger log = Logger.getLogger(TaskController.class);
 
     private final TaskService taskService;
+    private final TaskMapper taskMapper;
     private final JwtService jwtService;
 
     @Inject
-    public TaskController(TaskService taskService, JwtService jwtService) {
+    public TaskController(TaskService taskService, TaskMapper taskMapper, JwtService jwtService) {
         this.taskService = taskService;
+        this.taskMapper = taskMapper;
         this.jwtService = jwtService;
     }
 
@@ -37,24 +39,13 @@ public class TaskController extends Controller {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
             }
-
-            Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
-            Map<String, String[]> formData = body.asFormUrlEncoded();
-            Http.MultipartFormData.FilePart<Files.TemporaryFile> pdfFilePart = body.getFile("pdfFile");
-            File pdfFile = pdfFilePart != null ? pdfFilePart.getRef().path().toFile() : null;
-            String name = taskService.getValueFromFormData(formData, "name");
-            String description = taskService.getValueFromFormData(formData, "description");
-
-            if (name == null || name.isEmpty()) {
-                return badRequest("Missing or empty 'name' field");
-            }
-            if (description == null || description.isEmpty()) {
-                return badRequest("Missing or empty 'description' field");
-            }
-
-            Task task = taskService.createTaskWithPDF(name, description, pdfFile);
-
-            return ok(Json.toJson(convertToTaskDTO(task)));
+            TaskRequestDTO taskRequestDTO = taskMapper.toTaskRequestDTO(request, false);
+            log.info("Converted request to TaskRequestDTO");
+            Task task = taskService.createTaskWithPDF(
+                    taskRequestDTO.getName(),
+                    taskRequestDTO.getDescription(),
+                    taskRequestDTO.getPdfFile());
+            return ok(Json.toJson(taskMapper.convertToTaskDTO(task)));
         } catch (Exception e) {
             log.error("Failed to create task: " + e.getMessage());
             return internalServerError("Failed to create task: " + e.getMessage());
@@ -62,46 +53,25 @@ public class TaskController extends Controller {
     }
 
     public Result updateTask(Http.Request request) {
-        log.info("Attempt to update a task");
+        log.info("Attempt to update task");
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
             }
-
-            Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
-            Map<String, String[]> formData = body.asFormUrlEncoded();
-            Http.MultipartFormData.FilePart<Files.TemporaryFile> pdfFilePart = body.getFile("pdfFile");
-            File pdfFile = pdfFilePart != null ? pdfFilePart.getRef().path().toFile() : null;
-            String id = taskService.getValueFromFormData(formData, "id");
-            String newName = taskService.getValueFromFormData(formData, "name");
-            String newDescription = taskService.getValueFromFormData(formData, "description");
-
-            if (id == null || id.isEmpty()) {
-                return badRequest("Missing or empty 'id' field");
-            }
-            if (newName == null || newName.isEmpty()) {
-                return badRequest("Missing or empty 'name' field");
-            }
-            if (newDescription == null || newDescription.isEmpty()) {
-                return badRequest("Missing or empty 'description' field");
-            }
-
-            Task existingTask = taskService.getTaskById(id);
+            TaskRequestDTO taskUpdateDTO = taskMapper.toTaskRequestDTO(request, true);
+            log.info("Converted request to TaskRequestDTO");
+            Task existingTask = taskService.getTaskById(taskUpdateDTO.getId());
             if (existingTask == null) {
                 return notFound("Task not found");
             }
 
-            if (pdfFile != null) {
-                List<String> imageIds = taskService.convertPDFToImages(pdfFile);
-                existingTask.setImageIds(imageIds);
-            }
-
-            existingTask.setName(newName);
-            existingTask.setDescription(newDescription);
+            existingTask.setName(taskUpdateDTO.getName());
+            existingTask.setDescription(taskUpdateDTO.getDescription());
 
             taskService.updateTask(existingTask);
 
-            return ok(Json.toJson(convertToTaskDTO(existingTask)));
+            return ok(Json.toJson(taskMapper.convertToTaskDTO(existingTask)));
+
         } catch (Exception e) {
             log.error("Failed to update task: " + e.getMessage());
             return internalServerError("Failed to update task: " + e.getMessage());
@@ -118,7 +88,7 @@ public class TaskController extends Controller {
             List<Task> tasks = taskService.getAllTasks();
             List<TaskDTO> taskDTOs = new ArrayList<>();
             for (Task task : tasks) {
-                taskDTOs.add(convertToTaskDTO(task));
+                taskDTOs.add(taskMapper.convertToTaskDTO(task));
             }
             return ok(Json.toJson(taskDTOs));
         } catch (Exception e) {
@@ -136,7 +106,7 @@ public class TaskController extends Controller {
 
             Task task = taskService.getTaskById(id);
             if (task != null) {
-                return ok(Json.toJson(convertToTaskDTO(task)));
+                return ok(Json.toJson(taskMapper.convertToTaskDTO(task)));
             } else {
                 return notFound();
             }
@@ -187,15 +157,5 @@ public class TaskController extends Controller {
     private boolean checkToken(Http.Request request) {
         String token = request.headers().get("Authorization").orElse(null);
         return (token == null || !jwtService.verifyToken(token));
-    }
-
-    private TaskDTO convertToTaskDTO(Task taskToConvert) {
-        TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setId(taskToConvert.getId().toString());
-        taskDTO.setName(taskToConvert.getName());
-        taskDTO.setDescription(taskToConvert.getDescription());
-        taskDTO.setCreatedDate(taskToConvert.getCreatedDate());
-        taskDTO.setImageIds(taskToConvert.getImageIds());
-        return taskDTO;
     }
 }
