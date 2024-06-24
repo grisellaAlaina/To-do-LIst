@@ -39,7 +39,7 @@ public class TaskRepositoryTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this); // Initializes fields annotated with Mockito annotations
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
