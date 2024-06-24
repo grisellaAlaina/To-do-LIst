@@ -23,5 +23,5 @@ POST    /login                controllers.AuthenticationController.login(request
 +nocsrf
 GET     /verifyToken     controllers.AuthenticationController.verifyToken(request: play.mvc.Http.Request)
 +nocsrf
-GET   /tasks/:id/export    controllers.TaskController.exportTaskAsZip(id: String, request: play.mvc.Http.Request)
+GET   /tasks/export/:id   controllers.TaskController.exportTaskAsZip(id: String, request: play.mvc.Http.Request)
 

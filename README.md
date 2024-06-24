@@ -17,7 +17,7 @@ Endpoints except, **/login**, **/verifyToken** can only be accessed with a JWT t
 | /tasks/{taskId}                 | DELETE | Delete Task                    |
 | /tasks/update                   | POST   | Update Task                    |
 | /verifyToken                    | GET    | Verify JWT Token               |
-| /tasks/{taskId}/export          | GET    | Export Task as Zip             |
+| /tasks/export/{taskId}          | GET    | Export Task as Zip             |
 
 
 
