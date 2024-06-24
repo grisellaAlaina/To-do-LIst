@@ -39,6 +39,13 @@ libraryDependencies += "com.auth0" % "java-jwt" % "4.4.0"
 // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
 libraryDependencies += "org.apache.pdfbox" % "pdfbox" % "3.0.2"
 
+// https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-jpeg2000
+libraryDependencies += "com.github.jai-imageio" % "jai-imageio-jpeg2000" % "1.4.0"
+
+// https://mvnrepository.com/artifact/com.levigo.jbig2/levigo-jbig2-imageio
+libraryDependencies += "com.levigo.jbig2" % "levigo-jbig2-imageio" % "2.0"
+
+
 
 
 

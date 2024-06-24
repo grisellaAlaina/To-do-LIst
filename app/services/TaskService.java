@@ -1,5 +1,7 @@
 package services;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import repository.TaskRepository;
 import domain.models.Task;
 import utils.PDFProcessing;
@@ -62,13 +64,14 @@ public class TaskService {
         log.info("Deleted task with ID: " + taskId);
     }
 
-    public Task createTaskWithPDF(String name, String description, File pdfFile) {
+    public Task createTaskWithPDF(String name, String description, File pdfFile) throws IOException {
         Task task = new Task();
         task.setName(name);
         task.setDescription(description);
         task.setCreatedDate(new Date());
 
         if (pdfFile != null) {
+            pdfProcessing.validate(pdfFile);
             List<String> imageIds = pdfProcessing.convertPDFToImages(pdfFile, taskRepository);
             task.setImageIds(imageIds);
         }

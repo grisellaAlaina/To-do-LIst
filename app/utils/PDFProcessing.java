@@ -38,4 +38,11 @@ public class PDFProcessing {
         }
         return imageIds;
     }
+
+    public void validate(File pdfFile) throws IOException {
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid PDF file.", e);
+        }
+    }
 }
