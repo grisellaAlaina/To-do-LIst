@@ -1,138 +1,78 @@
 package services;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import domain.models.Task;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import repository.TaskRepository;
+import services.TaskService;
+import utils.PDFProcessing;
+import utils.ZipFileUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
-import com.mongodb.gridfs.GridFS;
-import com.mongodb.gridfs.GridFSDBFile;
-import com.mongodb.gridfs.GridFSInputFile;
-import org.bson.types.ObjectId;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-import models.Task;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.Query;
+class TaskServiceTest {
+    TaskService taskService;
+    TaskRepository taskRepository;
+    PDFProcessing pdfProcessing;
+    ZipFileUtils zipFileUtils;
+    File tempFile;
 
-@RunWith(MockitoJUnitRunner.class)
-public class TaskServiceTest {
-
-    @Mock
-    private Datastore datastore;
-
-    @Mock
-    private GridFS gridFS;
-
-    @Mock
-    private GridFSInputFile gridFSInputFile;
-
-    @Mock
-    private Query<Task> query;
-
-    @InjectMocks
-    private TaskService taskService;
-
-    private Task task;
-
-    @Before
+    @BeforeEach
     public void setUp() {
-        task = new Task();
-        task.setId(new ObjectId());
-        task.setName("Test Task");
-        task.setDescription("Test Description");
-        task.setCreatedDate(new Date());
+        taskRepository = mock(TaskRepository.class);
+        pdfProcessing = mock(PDFProcessing.class);
+        zipFileUtils = mock(ZipFileUtils.class);
+        taskService = new TaskService(taskRepository, pdfProcessing, zipFileUtils);
+        tempFile = mock(File.class);
     }
 
     @Test
-    public void testCreateTask() {
+    public void createTask() {
+        Task task = new Task();
         taskService.createTask(task);
-        verify(datastore).save(task);
-    }
-
-
-    @Test
-    public void testGetTaskById() {
-        when(datastore.get(Task.class, task.getId())).thenReturn(task);
-
-        Task retrievedTask = taskService.getTaskById(task.getId().toString());
-
-        assertEquals(task, retrievedTask);
+        verify(taskRepository, times(1)).createTask(task);
     }
 
     @Test
-    public void testUpdateTask() {
+    public void getAllTasks() {
+        taskService.getAllTasks();
+        verify(taskRepository, times(1)).getAllTasks();
+    }
+
+    @Test
+    public void getTaskById() {
+        taskService.getTaskById("id");
+        verify(taskRepository, times(1)).getTaskById("id");
+    }
+
+    @Test
+    public void updateTask() {
+        Task task = new Task();
         taskService.updateTask(task);
-        verify(datastore).save(task);
+        verify(taskRepository, times(1)).updateTask(task);
     }
 
     @Test
-    public void testDeleteTask() {
-        taskService.deleteTask(task.getId().toString());
-        verify(datastore).delete(Task.class, task.getId());
+    public void deleteTask() {
+        taskService.deleteTask("id");
+        verify(taskRepository, times(1)).deleteTask("id");
     }
 
     @Test
-    public void testGetAllTasks() {
-        List<Task> mockTasks = Arrays.asList(task, new Task());
-        when(datastore.find(Task.class)).thenReturn(query);
-        when(query.asList()).thenReturn(mockTasks);
-
-        List<Task> returnedTasks = taskService.getAllTasks();
-        assertEquals(returnedTasks, mockTasks);
+    public void createTaskWithPDF() throws IOException {
+        when(tempFile.exists()).thenReturn(true);
+        when(pdfProcessing.convertPDFToImages(any(File.class), any(TaskRepository.class))).thenReturn(Arrays.asList("1", "2"));
+        Task task = taskService.createTaskWithPDF("name", "description", tempFile);
+        verify(pdfProcessing, times(1)).convertPDFToImages(any(File.class), any(TaskRepository.class));
+        verify(taskRepository, times(1)).createTask(task);
     }
-
-    @Test
-    public void saveImageToMongo() {
-        byte[] mockBytes = "test-image".getBytes();
-        String filename = "test.jpg";
-        ObjectId mockObjectId = new ObjectId();
-
-        when(gridFS.createFile(mockBytes)).thenReturn(gridFSInputFile);
-        when(gridFSInputFile.getId()).thenReturn(mockObjectId);
-
-        String returnedObjectId = taskService.saveImageToMongo(mockBytes, filename);
-
-        assertEquals(returnedObjectId, mockObjectId.toString());
-        verify(gridFSInputFile).setContentType("image/jpg");
-        verify(gridFSInputFile).setFilename(filename);
-        verify(gridFSInputFile).save();
-    }
-
-    @Test
-    public void testGetImageByImageId_Success() throws IOException {
-        String imageId = "507f191e810c19729de860ea";
-        GridFSDBFile imageFile = Mockito.mock(GridFSDBFile.class);
-        Mockito.when(gridFS.find(new ObjectId(imageId))).thenReturn(imageFile);
-
-        Mockito.doAnswer(invocation -> {
-            ByteArrayOutputStream outputStream = invocation.getArgument(0);
-            return 0;
-        }).when(imageFile).writeTo(any(ByteArrayOutputStream.class));
-
-        taskService.getImageByImageId(imageId);
-
-        Mockito.verify(gridFS).find(new ObjectId(imageId));
-    }
-
-    @Test
-    public void testGetImageByImageId_GridFSError() throws IOException {
-        String imageId = "invalid-image-id";
-
-        byte[] result = taskService.getImageByImageId(imageId);
-
-        assertNull(result);
-    }
-
-
 }

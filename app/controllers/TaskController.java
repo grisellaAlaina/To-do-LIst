@@ -1,8 +1,8 @@
 package controllers;
 
-import dto.TaskDTO;
-import dto.TaskRequestDTO;
-import mappers.TaskMapper;
+import domain.dto.TaskDTO;
+import domain.dto.TaskRequestDTO;
+import domain.mappers.TaskMapper;
 import org.apache.log4j.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -10,7 +10,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import services.TaskService;
 import services.JwtService;
-import models.Task;
+import domain.models.Task;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -138,13 +138,10 @@ public class TaskController extends Controller {
                 return unauthorized("Invalid or missing JWT token");
             }
 
-            Task task = taskService.getTaskById(id);
-            if (task == null) {
+            File zipFile = taskService.exportTaskAsZipFile(id);
+            if (zipFile == null) {
                 return notFound("Task not found with ID: " + id);
             }
-            String destinationPath = File.createTempFile(task.getName(), ".zip").getPath();
-
-            File zipFile = taskService.createTaskAsZipFile(task, destinationPath);
 
             return ok().sendFile(zipFile, false, String.valueOf(true))
                     .withHeader("Content-Disposition", "attachment; filename=" + zipFile.getName());

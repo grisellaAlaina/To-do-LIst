@@ -1,4 +1,4 @@
-package dto;
+package domain.dto;
 
 import org.bson.types.ObjectId;
 

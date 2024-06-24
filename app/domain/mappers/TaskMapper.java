@@ -1,10 +1,10 @@
-package mappers;
+package domain.mappers;
 
-import dto.TaskDTO;
+import domain.dto.TaskDTO;
 import exceptions.EmptyFieldException;
 import exceptions.MissingFieldException;
-import dto.TaskRequestDTO;
-import models.Task;
+import domain.dto.TaskRequestDTO;
+import domain.models.Task;
 import play.libs.Files;
 import play.mvc.Http;
 
