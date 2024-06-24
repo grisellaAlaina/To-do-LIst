@@ -4,18 +4,13 @@ import domain.models.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.TaskRepository;
-import services.TaskService;
 import utils.PDFProcessing;
 import utils.ZipFileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
-import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

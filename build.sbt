@@ -15,10 +15,10 @@ lazy val root = (project in file("."))
  libraryDependencies += "log4j" % "log4j" % "1.2.17"
 
 // https://mvnrepository.com/artifact/org.mockito/mockito-core
-libraryDependencies += "org.mockito" % "mockito-core" % "3.12.4" % Test
+libraryDependencies += "org.mockito" % "mockito-core" % "5.11.0" % Test
 
 // https://mvnrepository.com/artifact/org.mockito/mockito-inline
-libraryDependencies += "org.mockito" % "mockito-inline" % "3.12.4" % Test
+libraryDependencies += "org.mockito" % "mockito-inline" % "5.2.0" % Test
 
 // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
 libraryDependencies += "org.junit.jupiter" % "junit-jupiter-engine" % "5.10.2" % Test
@@ -26,7 +26,7 @@ libraryDependencies += "org.junit.jupiter" % "junit-jupiter-engine" % "5.10.2" %
 // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
 libraryDependencies += "org.junit.jupiter" % "junit-jupiter-api" % "5.10.2" % Test
 
-libraryDependencies += "net.aichler" % "jupiter-interface" % "0.9.1" % Test
+libraryDependencies += "net.aichler" % "jupiter-interface" % "0.11.1" % Test
 
 Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
 

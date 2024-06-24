@@ -9,6 +9,9 @@ public class TaskRequestDTO {
     private String description;
     private File pdfFile;
 
+    public TaskRequestDTO() {
+    }
+
     public TaskRequestDTO(String name, String description, File pdfFile) {
         this.name = name;
         this.description = description;
