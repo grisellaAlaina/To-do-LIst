@@ -47,14 +47,14 @@ public class TaskRepositoryTest {
     }
 
     @Test
-    public void testCreateTask() {
+    public void testCreateTask_shouldCallDatastore() {
         Task task = new Task();
         taskRepository.createTask(task);
         verify(datastore, times(1)).save(task);
     }
 
     @Test
-    public void testGetAllTask() {
+    public void testGetAllTask_shouldCallDatastore() {
         when(datastore.find(Task.class)).thenReturn(query);
         when(query.asList()).thenReturn(Arrays.asList(new Task(), new Task()));
         List<Task> tasks = taskRepository.getAllTasks();
@@ -63,7 +63,7 @@ public class TaskRepositoryTest {
     }
 
     @Test
-    public void testGetTaskById() {
+    public void testGetTaskById_shouldCallDatastore() {
         ObjectId id = new ObjectId();
         Task task = new Task();
 
@@ -75,21 +75,21 @@ public class TaskRepositoryTest {
     }
 
     @Test
-    public void testUpdateTask() {
+    public void testUpdateTask_shouldCallDatastore() {
         Task task = new Task();
         taskRepository.updateTask(task);
         verify(datastore, times(1)).save(task);
     }
 
     @Test
-    public void testDeleteTask() {
+    public void testDeleteTask_shouldCallDatastore() {
         ObjectId id = new ObjectId();
         taskRepository.deleteTask(id.toString());
         verify(datastore, times(1)).delete(Task.class, id);
     }
 
     @Test
-    public void testSaveImageToMongo() {
+    public void testSaveImageToMongo_shouldCallDatastore() {
         byte[] imageBytes = new byte[]{1, 2, 3, 4, 5};
         String filename = "somefile.jpg";
 
@@ -107,7 +107,7 @@ public class TaskRepositoryTest {
     }
 
     @Test
-    public void testGetImageByImageId() throws Exception {
+    public void testGetImageByImageId_shouldCallDatastore() throws Exception {
         ObjectId imageId = new ObjectId();
         byte[] imageBytes = new byte[]{1, 2, 3, 4, 5};
 

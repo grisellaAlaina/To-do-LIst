@@ -1,7 +1,5 @@
 package services;
 
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import repository.TaskRepository;
 import domain.models.Task;
 import utils.PDFProcessing;
@@ -86,7 +84,7 @@ public class TaskService {
             return null;
         }
         String destinationPath = File.createTempFile(task.getName(), ".zip").getPath();
-        return zipFileUtils.createTaskAsZipFile(task, destinationPath, taskRepository);
+        return ZipFileUtils.createTaskAsZipFile(task, destinationPath, taskRepository);
     }
 
 

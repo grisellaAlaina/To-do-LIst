@@ -31,39 +31,39 @@ class TaskServiceTest {
     }
 
     @Test
-    public void createTask() {
+    public void createTask_shouldCallRepository() {
         Task task = new Task();
         taskService.createTask(task);
         verify(taskRepository, times(1)).createTask(task);
     }
 
     @Test
-    public void getAllTasks() {
+    public void getAllTasks_shouldCallRepository() {
         taskService.getAllTasks();
         verify(taskRepository, times(1)).getAllTasks();
     }
 
     @Test
-    public void getTaskById() {
+    public void getTaskById_shouldCallRepository() {
         taskService.getTaskById("id");
         verify(taskRepository, times(1)).getTaskById("id");
     }
 
     @Test
-    public void updateTask() {
+    public void updateTask_shouldCallRepository() {
         Task task = new Task();
         taskService.updateTask(task);
         verify(taskRepository, times(1)).updateTask(task);
     }
 
     @Test
-    public void deleteTask() {
+    public void deleteTask_shouldCallRepository() {
         taskService.deleteTask("id");
         verify(taskRepository, times(1)).deleteTask("id");
     }
 
     @Test
-    public void createTaskWithPDF() throws IOException {
+    public void createTaskWithPDF_shouldCallMethods() throws IOException {
         when(tempFile.exists()).thenReturn(true);
         when(pdfProcessing.convertPDFToImages(any(File.class), any(TaskRepository.class))).thenReturn(Arrays.asList("1", "2"));
         Task task = taskService.createTaskWithPDF("name", "description", tempFile);

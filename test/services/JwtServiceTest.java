@@ -17,20 +17,20 @@ public class JwtServiceTest {
     }
 
     @Test
-    public void generateTokenTest() {
+    public void generateTokenTest_tokenShouldCreateToken() {
         String token = jwtService.generateToken(userName);
         assertNotNull(token);
         assertFalse(token.isEmpty());
     }
 
     @Test
-    public void verifyTokenTest() {
+    public void verifyTokenTest_shouldReturnTrue() {
         String token = jwtService.generateToken(userName);
         assertTrue(jwtService.verifyToken(token));
     }
 
     @Test
-    public void verifyWrongTokenTest() {
+    public void verifyWrongTokenTest_shouldReturnFalse() {
         String wrongToken = "wrongToken";
         assertFalse(jwtService.verifyToken(wrongToken));
     }
