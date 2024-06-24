@@ -1,7 +1,6 @@
 package services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -15,6 +14,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import com.mongodb.MongoClient;
 
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -25,12 +25,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.apache.log4j.Logger;
 
 public class TaskService {
+    private static final Logger log = Logger.getLogger(TaskService.class);
+
     private final Datastore datastore;
     private final GridFS gridFS;
 
     public TaskService() {
+        log.info("Initialized TaskService with default settings");
         Morphia morphia = new Morphia();
         morphia.mapPackage("models");
         MongoClient mongoClient = new MongoClient("localhost", 27017);
@@ -40,29 +44,41 @@ public class TaskService {
     }
 
     public TaskService(Datastore datastore, GridFS gridFS) {
+        log.info("Initialized TaskService with custom settings");
         this.datastore = datastore;
         this.gridFS = gridFS;
     }
 
-
     public void createTask(Task task) {
         datastore.save(task);
+        log.info("Task created: " + task.getId());
     }
 
+
     public List<Task> getAllTasks() {
-        return datastore.find(Task.class).asList();
+        List<Task> tasks = datastore.find(Task.class).asList();
+        log.info("Retrieved " + tasks.size() + " tasks");
+        return tasks;
     }
 
     public Task getTaskById(String taskId) {
-        return datastore.get(Task.class, new org.bson.types.ObjectId(taskId));
+        Task task = datastore.get(Task.class, new org.bson.types.ObjectId(taskId));
+        if(task != null) {
+            log.info("Retrieved task with ID: " + taskId);
+        } else {
+            log.warn("Task not found with ID: " + taskId);
+        }
+        return task;
     }
 
     public void updateTask(Task updatedTask) {
         datastore.save(updatedTask);
+        log.info("Updated task: " + updatedTask.getId());
     }
 
     public void deleteTask(String taskId) {
         datastore.delete(Task.class, new org.bson.types.ObjectId(taskId));
+        log.info("Deleted task with ID: " + taskId);
     }
 
     public String saveImageToMongo(byte[] imageBytes, String filename) {
@@ -70,37 +86,33 @@ public class TaskService {
         gfsFile.setFilename(filename);
         gfsFile.setContentType("image/jpg");
         gfsFile.save();
+        log.info("Saved " + filename + " to MongoDB");
         return gfsFile.getId().toString();
     }
 
     public List<String> convertPDFToImages(File pdfFile) {
         List<String> imageIds = new ArrayList<>();
-
         try (final PDDocument document = Loader.loadPDF(pdfFile)) {
             PDFRenderer pdfRenderer = new PDFRenderer(document);
-
             for (int page = 0; page < document.getNumberOfPages(); ++page) {
                 try {
                     BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     ImageIO.write(bim, "jpg", baos);
                     byte[] imageInByte = baos.toByteArray();
-
                     String imageId = saveImageToMongo(imageInByte, "page_" + page + ".jpg");
                     imageIds.add(imageId);
 
                 } catch (IOException e) {
-                    System.err.println("Error rendering image or writing to byte array: " + e.getMessage());
+                    log.error("Error rendering image or writing to byte array: " + e.getMessage());
                 }
             }
 
-            return imageIds;
-
         } catch (IOException e) {
-            System.err.println("Error loading PDF document: " + e.getMessage());
+            log.error("Error loading PDF document: " + e.getMessage());
         }
 
-        return null;
+        return imageIds;
     }
 
     public byte[] getImageByImageId(String imageId) {
@@ -108,9 +120,10 @@ public class TaskService {
             GridFSDBFile imageFile = gridFS.find(new ObjectId(imageId));
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             imageFile.writeTo(outputStream);
+            log.info("Loaded image with ID: " + imageId);
             return outputStream.toByteArray();
         } catch (Exception e) {
-            System.err.println("Error loading image: " + e.getMessage());
+            log.error("Error loading image: " + e.getMessage());
             return null;
         }
     }
@@ -157,8 +170,10 @@ public class TaskService {
                     }
                 }
             }
+            log.info("Created task as a zip file at " + destinationPath);
             return zipFile;
         } catch (IOException e) {
+            log.error("An issue occurred while creating the zip file.", e);
             throw new RuntimeException("An issue occurred while creating the zip file.", e);
         }
     }

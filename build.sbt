@@ -11,6 +11,9 @@ lazy val root = (project in file("."))
     )
   )
 
+ // https://mvnrepository.com/artifact/log4j/log4j
+ libraryDependencies += "log4j" % "log4j" % "1.2.17"
+
 // https://mvnrepository.com/artifact/org.mockito/mockito-core
 libraryDependencies += "org.mockito" % "mockito-core" % "3.12.4" % Test
 
@@ -31,4 +34,7 @@ libraryDependencies += "com.auth0" % "java-jwt" % "4.4.0"
 
 // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
 libraryDependencies += "org.apache.pdfbox" % "pdfbox" % "3.0.2"
+
+
+
 

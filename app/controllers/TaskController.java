@@ -1,6 +1,7 @@
 package controllers;
 
 import dto.TaskDTO;
+import org.apache.log4j.Logger;
 import play.libs.Files;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -16,7 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
 public class TaskController extends Controller {
+
+    private static final Logger log = Logger.getLogger(TaskController.class);
 
     private final TaskService taskService;
     private final JwtService jwtService;
@@ -28,6 +32,7 @@ public class TaskController extends Controller {
     }
 
     public Result createTask(Http.Request request) {
+        log.info("Attempt to create a new task");
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
@@ -35,8 +40,7 @@ public class TaskController extends Controller {
 
             Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
             Map<String, String[]> formData = body.asFormUrlEncoded();
-            Http.MultipartFormData.FilePart<Files.TemporaryFile> pdfFilePart =
-                    body.getFile("pdfFile");
+            Http.MultipartFormData.FilePart<Files.TemporaryFile> pdfFilePart = body.getFile("pdfFile");
             File pdfFile = pdfFilePart != null ? pdfFilePart.getRef().path().toFile() : null;
             String name = taskService.getValueFromFormData(formData, "name");
             String description = taskService.getValueFromFormData(formData, "description");
@@ -52,11 +56,13 @@ public class TaskController extends Controller {
 
             return ok(Json.toJson(convertToTaskDTO(task)));
         } catch (Exception e) {
+            log.error("Failed to create task: " + e.getMessage());
             return internalServerError("Failed to create task: " + e.getMessage());
         }
     }
 
     public Result updateTask(Http.Request request) {
+        log.info("Attempt to update a task");
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
@@ -64,8 +70,7 @@ public class TaskController extends Controller {
 
             Http.MultipartFormData<Files.TemporaryFile> body = request.body().asMultipartFormData();
             Map<String, String[]> formData = body.asFormUrlEncoded();
-            Http.MultipartFormData.FilePart<Files.TemporaryFile> pdfFilePart =
-                    body.getFile("pdfFile");
+            Http.MultipartFormData.FilePart<Files.TemporaryFile> pdfFilePart = body.getFile("pdfFile");
             File pdfFile = pdfFilePart != null ? pdfFilePart.getRef().path().toFile() : null;
             String id = taskService.getValueFromFormData(formData, "id");
             String newName = taskService.getValueFromFormData(formData, "name");
@@ -74,11 +79,9 @@ public class TaskController extends Controller {
             if (id == null || id.isEmpty()) {
                 return badRequest("Missing or empty 'id' field");
             }
-
             if (newName == null || newName.isEmpty()) {
                 return badRequest("Missing or empty 'name' field");
             }
-
             if (newDescription == null || newDescription.isEmpty()) {
                 return badRequest("Missing or empty 'description' field");
             }
@@ -100,11 +103,13 @@ public class TaskController extends Controller {
 
             return ok(Json.toJson(convertToTaskDTO(existingTask)));
         } catch (Exception e) {
+            log.error("Failed to update task: " + e.getMessage());
             return internalServerError("Failed to update task: " + e.getMessage());
         }
     }
 
     public Result getAllTasks(Http.Request request) {
+        log.info("Fetching all tasks");
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
@@ -117,11 +122,13 @@ public class TaskController extends Controller {
             }
             return ok(Json.toJson(taskDTOs));
         } catch (Exception e) {
+            log.error("Failed to fetch tasks: " + e.getMessage());
             return internalServerError("Failed to fetch tasks: " + e.getMessage());
         }
     }
 
     public Result getTaskById(String id, Http.Request request) {
+        log.info("Fetching task with id: " + id);
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
@@ -134,11 +141,13 @@ public class TaskController extends Controller {
                 return notFound();
             }
         } catch (Exception e) {
+            log.error("Failed to fetch task: " + e.getMessage());
             return internalServerError("Failed to fetch task: " + e.getMessage());
         }
     }
 
     public Result deleteTask(String id, Http.Request request) {
+        log.info("Deleting task with id: " + id);
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
@@ -147,11 +156,13 @@ public class TaskController extends Controller {
             taskService.deleteTask(id);
             return ok("Task deleted successfully");
         } catch (Exception e) {
+            log.error("Failed to delete task: " + e.getMessage());
             return internalServerError("Failed to delete task: " + e.getMessage());
         }
     }
 
     public Result exportTaskAsZip(String id, Http.Request request) {
+        log.info("Exporting task with id: " + id + " as zip");
         try {
             if (checkToken(request)) {
                 return unauthorized("Invalid or missing JWT token");
@@ -161,7 +172,6 @@ public class TaskController extends Controller {
             if (task == null) {
                 return notFound("Task not found with ID: " + id);
             }
-
             String destinationPath = File.createTempFile(task.getName(), ".zip").getPath();
 
             File zipFile = taskService.createTaskAsZipFile(task, destinationPath);
@@ -169,6 +179,7 @@ public class TaskController extends Controller {
             return ok().sendFile(zipFile, false, String.valueOf(true))
                     .withHeader("Content-Disposition", "attachment; filename=" + zipFile.getName());
         } catch (Exception e) {
+            log.error("Failed to export task: " + e.getMessage());
             return internalServerError("Failed to export task: " + e.getMessage());
         }
     }
