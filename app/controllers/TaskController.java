@@ -184,12 +184,12 @@ public class TaskController extends Controller {
         }
     }
 
-    private boolean checkToken (Http.Request request) {
+    private boolean checkToken(Http.Request request) {
         String token = request.headers().get("Authorization").orElse(null);
-        return  (token == null || !jwtService.verifyToken(token));
+        return (token == null || !jwtService.verifyToken(token));
     }
 
-    private TaskDTO convertToTaskDTO (Task taskToConvert) {
+    private TaskDTO convertToTaskDTO(Task taskToConvert) {
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setId(taskToConvert.getId().toString());
         taskDTO.setName(taskToConvert.getName());

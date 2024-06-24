@@ -1,7 +1,7 @@
 package controllers;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -9,9 +9,10 @@ import play.mvc.Http;
 import play.mvc.Result;
 import services.JwtService;
 import services.TaskService;
+
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class TaskControllerTest {
@@ -27,7 +28,7 @@ public class TaskControllerTest {
 
     private Http.RequestBuilder fakeRequestBuilder;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 

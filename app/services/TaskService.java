@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import org.apache.log4j.Logger;
 
 public class TaskService {
@@ -63,7 +64,7 @@ public class TaskService {
 
     public Task getTaskById(String taskId) {
         Task task = datastore.get(Task.class, new org.bson.types.ObjectId(taskId));
-        if(task != null) {
+        if (task != null) {
             log.info("Retrieved task with ID: " + taskId);
         } else {
             log.warn("Task not found with ID: " + taskId);

@@ -2,8 +2,6 @@ package services;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.log4j.Logger;
 
 import javax.inject.Singleton;
@@ -15,6 +13,7 @@ public class JwtService {
     private static final Logger log = Logger.getLogger(JwtService.class);
 
     private static final String SECRET_KEY = "G9HJ2ALjxWpt!yH$gy4G8LBNx!Fw!@Kw";
+
     public String generateToken(String username) {
         Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
         Date expirationDate = new Date(System.currentTimeMillis() + 999900000);

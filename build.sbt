@@ -26,6 +26,10 @@ libraryDependencies += "org.junit.jupiter" % "junit-jupiter-engine" % "5.10.2" %
 // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
 libraryDependencies += "org.junit.jupiter" % "junit-jupiter-api" % "5.10.2" % Test
 
+libraryDependencies += "net.aichler" % "jupiter-interface" % "0.9.1" % Test
+
+Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+
 libraryDependencies += "org.mongodb" % "mongo-java-driver" % "3.12.14"
 libraryDependencies += "org.mongodb.morphia" % "morphia" % "1.3.2"
 

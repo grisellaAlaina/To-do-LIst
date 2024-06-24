@@ -3,14 +3,12 @@ package services;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -126,8 +124,6 @@ public class TaskServiceTest {
 
         Mockito.verify(gridFS).find(new ObjectId(imageId));
     }
-
-
 
     @Test
     public void testGetImageByImageId_GridFSError() throws IOException {
